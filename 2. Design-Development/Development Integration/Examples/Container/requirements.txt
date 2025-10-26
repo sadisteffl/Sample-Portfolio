@@ -1,0 +1,4 @@
+# requirements.txt
+flask==1.0  # ❌ old version, known vulnerabilities
+requests==2.18.4  # ❌ old version with CVEs
+pyyaml==5.3  # ❌ older version with unsafe load CVEs

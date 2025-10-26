@@ -1,0 +1,16 @@
+# Again, this is just a sample of my work with one core fundamental item. 
+# A core principle of a secure network is to deny all traffic by default and only allow what is explicitly required. 
+# In Kubernetes, this is achieved with a "default-deny" `NetworkPolicy`. 
+# This single resource dramatically reduces the potential attack surface by preventing unsecured, lateral movement between pods in the event of a compromise.
+# All other network policies would then be created to explicitly *allow* necessary traffic (e.g., allowing the frontend to talk to the backend API).
+
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: default
+spec:
+  podSelector: {} # An empty podSelector selects all pods in the namespace
+  policyTypes:
+  - Ingress

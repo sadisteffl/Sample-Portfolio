@@ -1,0 +1,3 @@
+# requirements.txt
+
+pyyaml==5.0  # ❌ older version with unsafe load CVEs

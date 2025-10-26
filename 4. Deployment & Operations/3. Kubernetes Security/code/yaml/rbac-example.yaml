@@ -1,0 +1,27 @@
+# Again, this is just a sample of my work with one core fundamental item. 
+# Hardening Containers to Prevent Privilege Escalation
+# A primary goal of container security is to strictly limit the "blast radius" of a potential compromise. 
+#
+# Hardening Containers: Don't Run as Root
+# Containers should always run with the fewest privileges necessary. 
+# Forbidding root execution is one of the most effective controls for limiting the potential damage of a container breakout. 
+# By enforcing this standard, we mitigate a wide range of privilege escalation vulnerabilities.
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-secure-app
+spec:
+  containers:
+  - name: my-app-container
+    image: nginx 
+    
+    securityContext:
+      runAsNonRoot: false
+# RBAC Example ^^
+      runAsUser: 1001
+      allowPrivilegeEscalation: false
+# RBAC Example ^^ 
+      capabilities:
+        drop:
+        - "ALL"

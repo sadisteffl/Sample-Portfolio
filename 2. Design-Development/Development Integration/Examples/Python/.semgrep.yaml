@@ -1,0 +1,161 @@
+# Semgrep dependency scanning configuration
+# Scans for known vulnerable package versions in Python dependency files
+
+rules:
+  # PyYAML vulnerable versions
+  - id: pyyaml-vulnerable-version
+    pattern-regex: pyyaml==5\.[0-3]
+    message: Vulnerable PyYAML version $1 detected with known CVEs (unsafe yaml.load())
+    languages: [generic]
+    severity: ERROR
+    paths:
+      include:
+        - requirements*.txt
+        - pyproject.toml
+        - Pipfile*
+        - setup.py
+        - setup.cfg
+    metadata:
+      category: security
+      technology:
+        - python
+      cwe:
+        - CWE-502
+      owasp:
+        - A08:2021 - Software and Data Integrity Failures
+      references:
+        - https://nvd.nist.gov/vuln/detail/CVE-2020-1747
+        - https://nvd.nist.gov/vuln/detail/CVE-2020-14343
+
+  # Requests vulnerable versions
+  - id: requests-vulnerable-version
+    pattern-regex: requests==2\.[0-9]\.[0-9]|requests==0\.[0-9]\.[0-9]
+    message: Potentially vulnerable Requests version $1 detected - consider updating
+    languages: [generic]
+    severity: WARNING
+    paths:
+      include:
+        - requirements*.txt
+        - pyproject.toml
+        - Pipfile*
+        - setup.py
+        - setup.cfg
+    metadata:
+      category: security
+      technology:
+        - python
+      cwe:
+        - CWE-20
+      owasp:
+        - A06:2021 - Vulnerable and Outdated Components
+
+  # Jinja2 vulnerable versions
+  - id: jinja2-vulnerable-version
+    pattern-regex: jinja2==2\.[0-9]\.[0-9]|jinja2==3\.[0-3]\.[0-9]
+    message: Potentially vulnerable Jinja2 version $1 detected - may have security issues
+    languages: [generic]
+    severity: WARNING
+    paths:
+      include:
+        - requirements*.txt
+        - pyproject.toml
+        - Pipfile*
+        - setup.py
+        - setup.cfg
+    metadata:
+      category: security
+      technology:
+        - python
+      cwe:
+        - CWE-94
+      owasp:
+        - A06:2021 - Vulnerable and Outdated Components
+
+  # urllib3 vulnerable versions
+  - id: urllib3-vulnerable-version
+    pattern-regex: urllib3==1\.[0-2][0-9]\.[0-9]
+    message: Potentially vulnerable urllib3 version $1 detected
+    languages: [generic]
+    severity: WARNING
+    paths:
+      include:
+        - requirements*.txt
+        - pyproject.toml
+        - Pipfile*
+        - setup.py
+        - setup.cfg
+    metadata:
+      category: security
+      technology:
+        - python
+      cwe:
+        - CWE-20
+      owasp:
+        - A06:2021 - Vulnerable and Outdated Components
+
+  # Django vulnerable versions
+  - id: django-vulnerable-version
+    pattern-regex: django==[1-2]\.[0-9]\.[0-9]|django==3\.[0-1]\.[0-9]
+    message: Potentially vulnerable Django version $1 detected - consider upgrading
+    languages: [generic]
+    severity: WARNING
+    paths:
+      include:
+        - requirements*.txt
+        - pyproject.toml
+        - Pipfile*
+        - setup.py
+        - setup.cfg
+    metadata:
+      category: security
+      technology:
+        - python
+        - django
+      cwe:
+        - CWE-20
+      owasp:
+        - A06:2021 - Vulnerable and Outdated Components
+
+  # Flask vulnerable versions
+  - id: flask-vulnerable-version
+    pattern-regex: flask==[0-1]\.[0-9]\.[0-9]|flask==2\.[0-2]\.[0-9]
+    message: Potentially vulnerable Flask version $1 detected - consider upgrading
+    languages: [generic]
+    severity: WARNING
+    paths:
+      include:
+        - requirements*.txt
+        - pyproject.toml
+        - Pipfile*
+        - setup.py
+        - setup.cfg
+    metadata:
+      category: security
+      technology:
+        - python
+        - flask
+      cwe:
+        - CWE-20
+      owasp:
+        - A06:2021 - Vulnerable and Outdated Components
+
+  # General outdated package detection
+  - id: outdated-package-version
+    pattern-regex: '[a-zA-Z0-9_-]+==[0-9]+\.[0-9]+\.[0-9]+(?!\.|\d)'
+    message: Package version $1 detected - verify it's not vulnerable
+    languages: [generic]
+    severity: INFO
+    paths:
+      include:
+        - requirements*.txt
+        - pyproject.toml
+        - Pipfile*
+        - setup.py
+        - setup.cfg
+    metadata:
+      category: security
+      technology:
+        - python
+      owasp:
+        - A06:2021 - Vulnerable and Outdated Components
+      description: Detects pinned package versions that should be checked for vulnerabilities

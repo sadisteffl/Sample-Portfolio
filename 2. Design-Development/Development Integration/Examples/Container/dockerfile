@@ -1,0 +1,16 @@
+# Dockerfile
+FROM python:3.8-slim
+
+# ❌ Outdated base image with known CVEs
+# ❌ Running as root user
+# ❌ Installing system packages without version pinning
+RUN apt-get update && apt-get install -y curl vim
+
+# ❌ Copy code directly without .dockerignore
+WORKDIR /app
+COPY . .
+
+# ❌ Install dependencies without hashes or verification
+RUN pip install -r requirements.txt
+
+CMD ["python", "app.py"]
