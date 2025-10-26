@@ -1,0 +1,399 @@
+name: 🛡️ Comprehensive Security Scan
+
+on:
+  push:
+    branches: [ main, master, develop, staging ]
+  pull_request:
+    branches: [ main, master, develop ]
+  schedule:
+    # Run security scan daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      scan_type:
+        description: 'Type of scan to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - trivy
+          - semgrep
+          - trufflehog
+
+env:
+  # Global environment variables
+  SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  # Trivy Container and File System Scanning
+  trivy-scan:
+    name: 🔍 Trivy Security Scan
+    runs-on: ubuntu-latest
+    if: github.event.inputs.scan_type == 'all' || github.event.inputs.scan_type == 'trivy' || github.event.inputs.scan_type == ''
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better secret detection
+
+      - name: 🔍 Run Trivy Vulnerability Scanner (File System)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          trivy-config: '.github/trivy.yaml'
+
+      - name: 🔍 Run Trivy Configuration Scanning
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-config-results.sarif'
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
+
+      - name: 🐳 Run Trivy Container Scanning (if Dockerfile exists)
+        if: hashFiles('**/Dockerfile*') != ''
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'image'
+          image-ref: 'docker.io/alpine:latest'
+          format: 'sarif'
+          output: 'trivy-container-results.sarif'
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH,MEDIUM'
+
+      - name: 📊 Upload Trivy Results to GitHub Security Tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+          category: 'trivy-fs'
+
+      - name: 📊 Upload Trivy Config Results to GitHub Security Tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('trivy-config-results.sarif') != ''
+        with:
+          sarif_file: 'trivy-config-results.sarif'
+          category: 'trivy-config'
+
+      - name: 📊 Upload Trivy Container Results to GitHub Security Tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('trivy-container-results.sarif') != ''
+        with:
+          sarif_file: 'trivy-container-results.sarif'
+          category: 'trivy-container'
+
+      - name: 📋 Trivy Summary Report
+        if: always()
+        run: |
+          echo "## 🔍 Trivy Security Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f "trivy-results.sarif" ]; then
+            echo "### File System Scan Results:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat trivy-results.sarif | jq -r '.runs[0].results | length' | xargs echo "Vulnerabilities found:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ -f "trivy-config-results.sarif" ]; then
+            echo "### Configuration Scan Results:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat trivy-config-results.sarif | jq -r '.runs[0].results | length' | xargs echo "Configuration issues found:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Semgrep Static Analysis
+  semgrep-scan:
+    name: 🔎 Semgrep Static Analysis
+    runs-on: ubuntu-latest
+    if: github.event.inputs.scan_type == 'all' || github.event.inputs.scan_type == 'semgrep' || github.event.inputs.scan_type == ''
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🔎 Semgrep Scan
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            auto
+            p/security-audit
+            p/owasp-top-ten
+            p/secrets
+            p/cwe-top-25
+            p/audit
+            p/dockerfile
+            p/kubernetes
+            p/python
+            p/javascript
+            p/typescript
+            p/go
+            p/java
+            p/ruby
+            p/php
+            p/csharp
+          config-file-destination: semgrep-config.yml
+          generate-sarif: '1'
+          output: 'semgrep-results.sarif'
+          severity: 'ERROR'
+          quiet: 'false'
+          json: 'true'
+          baseline-ref: 'main'
+
+      - name: 🔎 Custom Semgrep Rules
+        if: hashFiles('.semgrep.yaml') != ''
+        run: |
+          echo "Running custom Semgrep rules..."
+          semgrep --config=.semgrep.yaml --json --output=custom-semgrep-results.json .
+
+      - name: 📊 Upload Semgrep Results to GitHub Security Tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'semgrep-results.sarif'
+          category: 'semgrep'
+
+      - name: 📊 Upload Custom Semgrep Results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('custom-semgrep-results.json') != ''
+        with:
+          sarif_file: 'semgrep-results.sarif'
+          category: 'semgrep-custom'
+
+      - name: 📋 Semgrep Summary Report
+        if: always()
+        run: |
+          echo "## 🔎 Semgrep Static Analysis Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f "semgrep-results.sarif" ]; then
+            echo "### Static Analysis Results:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat semgrep-results.sarif | jq -r '.runs[0].results | length' | xargs echo "Security issues found:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ -f "custom-semgrep-results.json" ]; then
+            echo "### Custom Rules Results:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat custom-semgrep-results.json | jq '.results | length' | xargs echo "Custom rule violations:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: 📧 Semgrep Notification (on failure)
+        if: failure()
+        run: |
+          echo "Semgrep found security issues that need attention!" >> $GITHUB_STEP_SUMMARY
+          echo "Please review the findings in the Security tab." >> $GITHUB_STEP_SUMMARY
+
+  # TruffleHog Secret Scanning
+  trufflehog-scan:
+    name: 🐗 TruffleHog Secret Scan
+    runs-on: ubuntu-latest
+    if: github.event.inputs.scan_type == 'all' || github.event.inputs.scan_type == 'trufflehog' || github.event.inputs.scan_type == ''
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better secret detection
+
+      - name: 🐗 Run TruffleHog Secret Scanner
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --json --exclude_paths .github/exclude-patterns.txt
+          output: trufflehog-results.json
+
+      - name: 🔄 Convert TruffleHog Results to SARIF
+        if: hashFiles('trufflehog-results.json') != ''
+        run: |
+          # Convert TruffleHog JSON to SARIF format
+          cat > trufflehog-sarif.json << 'EOF'
+          {
+            "version": "2.1.0",
+            "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+            "runs": [
+              {
+                "tool": {
+                  "driver": {
+                    "name": "TruffleHog",
+                    "version": "3.0.0",
+                    "informationUri": "https://github.com/trufflesecurity/trufflehog"
+                  }
+                },
+                "results": [
+          EOF
+
+          # Process TruffleHog results
+          if [ -f "trufflehog-results.json" ]; then
+            jq -r '.[] | {
+              ruleId: "secret-found",
+              level: "error",
+              message: { text: ("Potential secret detected: " + .SourceMetadata["Data"]["Git"]["commit"]) },
+              locations: [{
+                physicalLocation: {
+                  artifactLocation: { uri: .SourceMetadata["Data"]["Git"]["file"] },
+                  region: {
+                    startLine: (.SourceMetadata["Data"]["Git"]["line"] | tonumber)
+                  }
+                }
+              }]
+            }' trufflehog-results.json | jq -s '.' >> trufflehog-sarif.json
+          fi
+
+          # Close SARIF file
+          cat >> trufflehog-sarif.json << 'EOF'
+                ]
+              }
+            ]
+          }
+          EOF
+
+      - name: 📊 Upload TruffleHog Results to GitHub Security Tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('trufflehog-sarif.json') != ''
+        with:
+          sarif_file: 'trufflehog-sarif.json'
+          category: 'trufflehog'
+
+      - name: 📋 TruffleHog Summary Report
+        if: always()
+        run: |
+          echo "## 🐗 TruffleHog Secret Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f "trufflehog-results.json" ]; then
+            echo "### Secrets Found:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat trufflehog-results.json | jq '. | length' | xargs echo "Potential secrets detected:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ No secrets detected!" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: 🚨 Create Issue for Secret Detection
+        if: failure() && hashFiles('trufflehog-results.json') != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const secrets = JSON.parse(fs.readFileSync('trufflehog-results.json', 'utf8'));
+
+            if (secrets.length > 0) {
+              const title = `🚨 Secret Detection Alert - ${context.sha}`;
+              const body = `
+              ## 🚨 Secret Detection Alert
+
+              **Commit:** ${context.sha}
+              **Branch:** ${context.ref}
+              **Workflow:** ${context.workflow}
+
+              **Secrets Found:** ${secrets.length}
+
+              Please review the security findings in the Security tab and immediately remediate any exposed secrets.
+
+              **Action Required:**
+              1. Rotate any exposed secrets immediately
+              2. Remove secrets from the repository history
+              3. Review commit access and permissions
+
+              ---
+              *This issue was automatically created by TruffleHog secret scanning*
+              `;
+
+              github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['security', 'secret-detection', 'urgent']
+              });
+            }
+
+  # Security Summary and Metrics
+  security-summary:
+    name: 📊 Security Summary
+    runs-on: ubuntu-latest
+    needs: [trivy-scan, semgrep-scan, trufflehog-scan]
+    if: always()
+
+    steps:
+      - name: 📋 Generate Security Summary
+        run: |
+          echo "# 🛡️ Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Tool | Status | Issues Found | Severity |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|-------------|----------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔍 Trivy | ${{ needs.trivy-scan.result }} | Checking file... | Multiple |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔎 Semgrep | ${{ needs.semgrep-scan.result }} | Checking file... | Multiple |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🐗 TruffleHog | ${{ needs.trufflehog-scan.result }} | Checking file... | Critical |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "## 📋 Detailed Results" >> $GITHUB_STEP_SUMMARY
+          echo "Please check the individual job summaries above for detailed findings." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "## 🔍 Review Required" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.trivy-scan.result }}" == "failure" ] || [ "${{ needs.semgrep-scan.result }}" == "failure" ] || [ "${{ needs.trufflehog-scan.result }}" == "failure" ]; then
+            echo "⚠️ **Security issues detected!** Please review the findings in the Security tab and address them promptly." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **All security scans passed!** No critical issues detected." >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Dependency Scanning (Enhanced)
+  dependency-scan:
+    name: 📦 Dependency Security Scan
+    runs-on: ubuntu-latest
+    if: github.event.inputs.scan_type == 'all' || github.event.inputs.scan_type == ''
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 📦 Run Trivy Dependency Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-deps-results.sarif'
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
+          list-all-pkgs: true
+
+      - name: 📊 Upload Dependency Scan Results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-deps-results.sarif'
+          category: 'dependency-scan'
+
+      - name: 📋 Dependency Summary
+        if: always()
+        run: |
+          echo "## 📦 Dependency Security Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f "trivy-deps-results.sarif" ]; then
+            echo "### Vulnerable Dependencies:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat trivy-deps-results.sarif | jq -r '.runs[0].results | length' | xargs echo "Vulnerable dependencies found:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi

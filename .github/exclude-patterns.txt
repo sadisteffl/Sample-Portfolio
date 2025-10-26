@@ -1,0 +1,345 @@
+# TruffleHog Exclude Patterns
+# This file specifies paths and patterns to exclude from secret scanning
+# Add patterns that frequently cause false positives
+
+# File extensions to exclude
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.svg
+*.bmp
+*.webp
+*.ico
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.ppt
+*.pptx
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.gz
+*.bz2
+*.xz
+*.exe
+*.dll
+*.so
+*.dylib
+*.bin
+*.class
+*.pyc
+*.pyo
+*.pyd
+*.jar
+*.war
+*.ear
+*.apk
+*.ipa
+*.deb
+*.rpm
+*.msi
+*.dmg
+*.pkg
+*.iso
+
+# Configuration files that might contain fake/sample data
+**/test/**
+**/tests/**
+**/spec/**
+**/specs/**
+**/fixtures/**
+**/mock/**
+**/sample/**
+**/example/**
+**/demo/**
+
+# Dependency lock files (contain version strings, not secrets)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+poetry.lock
+Pipfile.lock
+composer.lock
+Gemfile.lock
+Cargo.lock
+go.sum
+*.csproj.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build artifacts and dist folders
+**/node_modules/**
+**/vendor/**
+**/dist/**
+**/build/**
+**/target/**
+**/out/**
+**/.next/**
+**/.nuxt/**
+**/.angular/**
+**/.vscode/**
+**/.idea/**
+**/.eclipse/**
+
+# Cache directories
+**/.cache/**
+**/.pytest_cache/**
+**/.mypy_cache/**
+**/.tox/**
+**/coverage/**
+**/htmlcov/**
+**/site-packages/**
+
+# Log files
+*.log
+*.out
+*.err
+*.debug
+*.trace
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Generated files
+*.generated.*
+*.auto.*
+*.min.js
+*.min.css
+*.bundle.js
+*.bundle.css
+
+# Database files (might contain sample data)
+*.db
+*.sqlite
+*.sqlite3
+*.mdb
+
+# Keys that are clearly test/sample
+test.key
+sample.key
+example.key
+demo.key
+fake.key
+mock.key
+dev.key
+development.key
+staging.key
+
+# Common false positive patterns
+password123
+password1
+admin123
+test123
+sample123
+example123
+demo123
+fake123
+changeme
+password
+secret
+key
+token
+
+# URLs that are clearly examples
+http://localhost
+http://127.0.0.1
+http://example.com
+https://example.com
+http://test.com
+https://test.com
+http://sample.com
+https://sample.com
+
+# Documentation files
+**/*.md
+**/*.rst
+**/*.txt
+**/README*
+**/CHANGELOG*
+**/LICENSE*
+**/COPYING*
+
+# Configuration templates
+**/*.template
+**/*.example
+**/*.sample
+**/*.default
+
+# Environment files that might contain placeholders
+.env.template
+.env.example
+.env.sample
+.env.default
+.env.test
+.env.dev
+.env.development
+.env.staging
+
+# Documentation directories
+**/docs/**
+**/documentation/**
+**/doc/**
+
+# Generated API documentation
+**/swagger-ui/**
+**/redoc/**
+
+# Performance test files
+**/benchmarks/**
+**/perf/**
+**/performance/**
+
+# Localization files
+**/i18n/**
+**/locales/**
+**/lang/**
+**/translations/**
+
+# Font files
+*.ttf
+*.otf
+*.woff
+*.woff2
+*.eot
+
+# Audio/video files
+*.mp3
+*.wav
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+
+# Large data files
+*.csv
+*.tsv
+*.dat
+*.data
+
+# Backup files
+*.backup
+*.old
+*.orig
+*.save
+
+# Version control metadata
+**/.git/**
+**/.svn/**
+**/.hg/**
+**/.bzr/**
+
+# CI/CD specific
+**/.github/workflows/cache/**
+**/.github/cache/**
+**/actions-runner/**
+**/runner/**
+
+# IDE specific
+**/.vscode/extensions/**
+**/.vscode-server/**
+**/JetBrains/**
+**/WebStorm/**
+**/IntelliJ IDEA/**
+**/PyCharm/**
+
+# OS specific
+**/.Trash/**
+**/Thumbs.db/**
+**/desktop.ini/**
+
+# Network captures and logs
+*.pcap
+*.pcapng
+*.cap
+*.dmp
+
+# Database dumps
+*.sql
+*.dump
+*.backup
+
+# Machine learning models
+*.model
+*.pkl
+*.pickle
+*.h5
+*.pb
+*.tflite
+
+# Container images
+*.img
+*.iso
+*.vhd
+*.vmdk
+
+# Test data files
+**/test-data/**
+**/fixtures/**
+**/data-test/**
+
+# Monitoring and metrics
+**/metrics/**
+**/monitoring/**
+**/grafana/**
+**/prometheus/**
+
+# Infrastructure as code templates
+**/terraform/examples/**
+**/terraform/modules/examples/**
+**/ansible/examples/**
+**/puppet/examples/**
+**/chef/examples/**
+
+# API specifications that might contain examples
+**/openapi/examples/**
+**/api/examples/**
+**/swagger/examples/**
+
+# Database migrations (might contain sample data)
+**/migrations/examples/**
+**/migrations/sample/**
+
+# Static assets
+**/static/**
+**/public/**
+**/assets/**
+**/images/**
+**/media/**
+**/uploads/**
+
+# Generated documentation
+**/_site/**
+**/build/**
+**/public/**
+
+# Coverage reports
+**/coverage/**
+**/lcov/**
+**/coverage.info
+
+# Performance reports
+**/benchmarks/**
+**/reports/**
+
+# Third-party libraries that might contain false positives
+**/lib/**
+**/libs/**
+**/third-party/**
+**/external/**

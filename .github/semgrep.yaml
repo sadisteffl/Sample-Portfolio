@@ -1,0 +1,431 @@
+# Enhanced Semgrep Configuration for Maximum Security Coverage
+# This configuration optimizes Semgrep for comprehensive security analysis
+
+# Global configuration
+rules:
+  # Include all security rules
+  - id: security-audit
+    rules:
+      - p/security-audit
+      - p/owasp-top-ten
+      - p/cwe-top-25
+      - p/secrets
+      - p/xss
+      - p/sql-injection
+      - p/command-injection
+      - p/path-traversal
+      - p/cryptography
+      - p/audit
+      - p/dockerfile
+      - p/kubernetes
+      - p/terraform
+      - p/ansible
+      - p/puppet
+      - p/chef
+
+  # Language-specific security rules
+  - id: python-security
+    rules:
+      - p/python
+      - p/django
+      - p/flask
+      - p/fastapi
+      - p/bottle
+      - p/tornado
+      - p/aiohttp
+
+  - id: javascript-security
+    rules:
+      - p/javascript
+      - p/typescript
+      - p/react
+      - p/vue
+      - p/angular
+      - p/express
+      - p/koa
+      - p/nodejs
+
+  - id: go-security
+    rules:
+      - p/go
+      - p/golang
+      - p/gorilla
+      - p/gin
+      - p/echo
+      - p/fiber
+
+  - id: java-security
+    rules:
+      - p/java
+      - p/spring
+      - p/hibernate
+      - p/maven
+      - p/gradle
+      - p/jenkins
+
+  - id: csharp-security
+    rules:
+      - p/csharp
+      - p/dotnet
+      - p/aspnet
+      - p/ef-core
+      - p/nuget
+
+  - id: ruby-security
+    rules:
+      - p/ruby
+      - p/rails
+      - p/sinatra
+      - p/bundler
+
+  - id: php-security
+    rules:
+      - p/php
+      - p/laravel
+      - p/symfony
+      - p/composer
+
+  - id: rust-security
+    rules:
+      - p/rust
+      - p/cargo
+      - p/actix
+      - p/rocket
+
+  - id: infrastructure-security
+    rules:
+      - p/terraform
+      - p/cloudformation
+      - p/arm
+      - p/pulumi
+      - p/kubernetes
+      - p/helm
+      - p/dockerfile
+      - p/docker-compose
+
+# Custom security rules
+custom-rules:
+  # Hardcoded credentials detection
+  - id: hardcoded-credentials
+    pattern: |
+      $PASSWORD = "..."
+      $API_KEY = "..."
+      $SECRET = "..."
+      $TOKEN = "..."
+      $PRIVATE_KEY = "..."
+    message: Hardcoded credential detected
+    severity: ERROR
+    languages: [generic]
+    paths:
+      include:
+        - "**/*.py"
+        - "**/*.js"
+        - "**/*.ts"
+        - "**/*.java"
+        - "**/*.go"
+        - "**/*.rb"
+        - "**/*.php"
+        - "**/*.cs"
+        - "**/*.rs"
+        - "**/*.sh"
+        - "**/*.bash"
+        - "**/*.yml"
+        - "**/*.yaml"
+        - "**/*.json"
+        - "**/*.toml"
+        - "**/*.ini"
+        - "**/*.cfg"
+        - "**/*.conf"
+    metadata:
+      category: security
+      cwe:
+        - CWE-798
+      owasp:
+        - A02:2021 - Cryptographic Failures
+
+  # Insecure random number generation
+  - id: insecure-random
+    pattern: |
+      random.seed(...)
+      math.random()
+      Random()
+    message: Insecure random number generation detected
+    severity: WARNING
+    languages: [python, javascript, java, go]
+    metadata:
+      category: security
+      cwe:
+        - CWE-338
+      owasp:
+        - A02:2021 - Cryptographic Failures
+
+  # SQL injection patterns
+  - id: sql-injection-patterns
+    pattern: |
+      execute("..." + $VAR + "...")
+      query("..." + $VAR + "...")
+      cursor.execute("..." + $VAR + "...")
+    message: Potential SQL injection vulnerability
+    severity: ERROR
+    languages: [python, java, javascript, php, ruby, go]
+    metadata:
+      category: security
+      cwe:
+        - CWE-89
+      owasp:
+        - A03:2021 - Injection
+
+  # XSS patterns
+  - id: xss-patterns
+    pattern: |
+      innerHTML = $VAR
+      outerHTML = $VAR
+      document.write($VAR)
+      eval($VAR)
+    message: Potential XSS vulnerability
+    severity: ERROR
+    languages: [javascript, typescript]
+    metadata:
+      category: security
+      cwe:
+        - CWE-79
+      owasp:
+        - A03:2021 - Injection
+
+  # Command injection patterns
+  - id: command-injection-patterns
+    pattern: |
+      os.system("..." + $VAR + "...")
+      subprocess.call("..." + $VAR + "...")
+      exec("..." + $VAR + "...")
+      shell_exec("..." + $VAR + "...")
+    message: Potential command injection vulnerability
+    severity: ERROR
+    languages: [python, php, bash, ruby]
+    metadata:
+      category: security
+      cwe:
+        - CWE-78
+      owasp:
+        - A03:2021 - Injection
+
+  # Path traversal patterns
+  - id: path-traversal-patterns
+    pattern: |
+      open("..." + $VAR + "...")
+      open("../" + $VAR)
+      open($VAR + "/...")
+    message: Potential path traversal vulnerability
+    severity: WARNING
+    languages: [python, java, go, ruby, php]
+    metadata:
+      category: security
+      cwe:
+        - CWE-22
+      owasp:
+        - A01:2021 - Broken Access Control
+
+  # Insecure deserialization
+  - id: insecure-deserialization
+    pattern: |
+      pickle.loads($VAR)
+      yaml.load($VAR)
+      json.loads($VAR)  # with unsafe options
+      Marshal.load($VAR)
+    message: Insecure deserialization detected
+    severity: ERROR
+    languages: [python, ruby, java]
+    metadata:
+      category: security
+      cwe:
+        - CWE-502
+      owasp:
+        - A08:2021 - Software and Data Integrity Failures
+
+  # Weak cryptography
+  - id: weak-cryptography
+    pattern: |
+      hashlib.md5(...)
+      hashlib.sha1(...)
+      Crypto.Cipher.ARC4.new(...)
+      M2Crypto.EVP.Cipher(...)
+    message: Weak cryptographic algorithm detected
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: security
+      cwe:
+        - CWE-327
+      owasp:
+        - A02:2021 - Cryptographic Failures
+
+  # Debug code in production
+  - id: debug-code-in-prod
+    pattern: |
+      console.log(...)
+      console.debug(...)
+      print(...)
+      console.error(...)
+      print_r(...)
+      var_dump(...)
+    message: Debug code detected
+    severity: INFO
+    languages: [javascript, typescript, python, php]
+    paths:
+      include:
+        - "**/*.js"
+        - "**/*.ts"
+        - "**/*.py"
+        - "**/*.php"
+    metadata:
+      category: best-practices
+
+  # Hardcoded URLs with sensitive paths
+  - id: hardcoded-sensitive-urls
+    pattern: |
+      "http://localhost:..."
+      "http://127.0.0.1:..."
+      "http://0.0.0.0:..."
+      "https://admin..."
+      "https://api..."
+      "https://staging..."
+    message: Hardcoded URL detected
+    severity: WARNING
+    languages: [generic]
+    metadata:
+      category: security
+
+# Configuration options
+config:
+  # Severity filtering
+  severity: ERROR
+
+  # Exclude patterns
+  exclude:
+    - "*test*"
+    - "*spec*"
+    - "node_modules/*"
+    - "vendor/*"
+    - ".git/*"
+    - "dist/*"
+    - "build/*"
+    - "target/*"
+
+  # Include patterns
+  include:
+    - "**/*.py"
+    - "**/*.js"
+    - "**/*.ts"
+    - "**/*.java"
+    - "**/*.go"
+    - "**/*.rb"
+    - "**/*.php"
+    - "**/*.cs"
+    - "**/*.rs"
+    - "**/*.sh"
+    - "**/*.bash"
+    - "**/*.yml"
+    - "**/*.yaml"
+    - "**/*.json"
+    - "**/*.toml"
+    - "**/*.ini"
+    - "**/*.cfg"
+    - "**/*.conf"
+    - "**/*.tf"
+    - "**/*.tfvars"
+    - "**/Dockerfile*"
+    - "**/docker-compose*.yml"
+    - "**/docker-compose*.yaml"
+
+  # Performance settings
+  max-memory: 4096
+  timeout: 300
+  jobs: 4
+
+  # Output settings
+  output-format: sarif
+  json: true
+  quiet: false
+  verbose: true
+
+  # Baseline comparison
+  baseline: main
+  baseline-ref: refs/heads/main
+
+  # Auto-fix (where applicable)
+  autofix: false
+
+  # Metrics
+  metrics: true
+  profiling: false
+
+# Integration settings
+integrations:
+  # GitHub integration
+  github:
+    # Upload results to GitHub Security tab
+    upload-sarif: true
+
+    # Create issues for critical findings
+    create-issues: true
+
+    # Comment on PRs
+    pr-comments: true
+
+    # Inline code suggestions
+    code-suggestions: true
+
+  # CI/CD integration
+  ci:
+    # Fail on errors
+    fail-on-error: true
+
+    # Fail on warnings
+    fail-on-warning: false
+
+    # Generate reports
+    generate-reports: true
+
+    # Report formats
+    report-formats:
+      - sarif
+      - json
+      - text
+      - html
+
+  # IDE integration
+  ide:
+    # Real-time scanning
+    real-time: true
+
+    # Auto-scan on file changes
+    auto-scan: true
+
+    # Show suggestions
+    show-suggestions: true
+
+# Advanced settings
+advanced:
+  # Enable experimental rules
+  experimental: false
+
+  # Enable performance profiling
+  profiling: false
+
+  # Enable debug mode
+  debug: false
+
+  # Cache settings
+  cache:
+    enabled: true
+    ttl: 3600  # 1 hour
+
+  # Parallel processing
+  parallel: true
+  workers: 4
+
+  # Timeout settings
+  timeouts:
+    rule-matching: 30
+    file-parsing: 60
+    total-scan: 300

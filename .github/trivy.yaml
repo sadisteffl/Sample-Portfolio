@@ -1,0 +1,233 @@
+# Trivy Configuration for Maximum Security Coverage
+# This configuration optimizes Trivy for comprehensive vulnerability detection
+
+# Scan configuration
+scan:
+  # Skip directories and files that don't need scanning
+  skip-dirs:
+    - .git
+    - .github
+    - node_modules
+    - vendor
+    - .venv
+    - venv
+    - __pycache__
+    - .pytest_cache
+    - .mypy_cache
+    - target
+    - build
+    - dist
+    - .next
+    - .nuxt
+    - .cache
+    - tmp
+    - temp
+
+  skip-files:
+    - "*.log"
+    - "*.tmp"
+    - "*.bak"
+    - "*.swp"
+    - "*.swo"
+    - ".DS_Store"
+    - "Thumbs.db"
+
+# Vulnerability scanning settings
+vulnerability:
+  # Vulnerability types to detect
+  type:
+    - os    # Operating system packages
+    - library # Language-specific libraries
+
+  # Severity levels to report
+  ignore-unfixed: true
+  severities:
+    - CRITICAL
+    - HIGH
+    - MEDIUM
+
+  # CVE database settings
+  cve-dictionary:
+    # Update CVE database on every scan
+    update-interval: 6h
+
+  # Package-specific settings
+  packages:
+    # Include development dependencies in scanning
+    include-dev-deps: true
+
+    # Maximum age for vulnerabilities (days)
+    max-age: 365
+
+# Misconfiguration scanning
+misconfig:
+  # Enable misconfiguration detection
+  enabled: true
+
+  # Configuration types to check
+  check-types:
+    - dockerfile
+    - kubernetes
+    - terraform
+    - cloudformation
+    - arm
+    - helm
+
+  # Severity levels for misconfigurations
+  severities:
+    - CRITICAL
+    - HIGH
+    - MEDIUM
+
+# Secret scanning
+secret:
+  # Enable secret detection
+  enabled: true
+
+  # Secret detection rules
+  rules:
+    # Enable all built-in rules
+    enable-all: true
+
+    # Custom rule patterns can be added here
+    custom-rules: []
+
+  # Exclude common false positives
+  exclude-patterns:
+    - ".*\\.(jpg|jpeg|png|gif|svg|pdf|zip|tar|gz)$"
+    - "package-lock\\.json"
+    - "yarn\\.lock"
+    - "poetry\\.lock"
+    - "Pipfile\\.lock"
+
+# License scanning
+license:
+  # Enable license detection
+  enabled: true
+
+  # License categories to report
+  categories:
+    - forbidden
+    - restricted
+    - unknown
+    - weak
+
+  # Specific licenses to ignore
+  ignore-licenses:
+    - MIT
+    - Apache-2.0
+    - BSD-2-Clause
+    - BSD-3-Clause
+
+# Reporting settings
+report:
+  # Output formats
+  formats:
+    - sarif
+    - json
+    - table
+
+  # SARIF configuration
+  sarif:
+    # Include tool information
+    include-tool-info: true
+
+    # Add rule details
+    include-rule-details: true
+
+    # Severity level mapping
+    severity-mapping:
+      CRITICAL: error
+      HIGH: error
+      MEDIUM: warning
+      LOW: note
+      UNKNOWN: note
+
+# Performance settings
+performance:
+  # Number of concurrent goroutines
+  workers: 4
+
+  # Timeout for network requests (seconds)
+  timeout: 300
+
+  # Cache settings
+  cache:
+    # Enable caching
+    enabled: true
+
+    # Cache directory
+    dir: /tmp/trivy-cache
+
+    # Cache duration (hours)
+    ttl: 24
+
+# Integration settings
+integrations:
+  # GitHub integration
+  github:
+    # Upload results to GitHub Security tab
+    upload-sarif: true
+
+    # Create issues for critical findings
+    create-issues: true
+
+    # Comment on PRs
+    pr-comments: true
+
+  # Slack integration (optional)
+  slack:
+    # Webhook URL (set as environment variable)
+    webhook-url: ${SLACK_WEBHOOK_URL}
+
+    # Channel for notifications
+    channel: "#security-alerts"
+
+    # Severity levels to notify
+    notify-on:
+      - CRITICAL
+      - HIGH
+
+# Development-specific settings
+development:
+  # Enable debug mode
+  debug: false
+
+  # Verbose output
+  verbose: true
+
+  # Quiet mode (minimal output)
+  quiet: false
+
+# Container-specific settings (when scanning container images)
+container:
+  # Scan all layers
+  scan-all-layers: true
+
+  # Include removed packages
+  include-removed-packages: false
+
+  # Docker configuration
+  docker:
+    # Use local Docker daemon
+    socket: unix:///var/run/docker.sock
+
+    # Registry credentials (if needed)
+    registry-credentials: {}
+
+# Advanced settings
+advanced:
+  # Enable experimental features
+  experimental: false
+
+  # Skip database updates (for CI/CD speed)
+  skip-db-update: false
+
+  # Download database only
+  download-db-only: false
+
+  # Reset database
+  reset: false
+
+  # Clear cache
+  clear-cache: false
