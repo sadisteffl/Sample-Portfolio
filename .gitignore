@@ -1,0 +1,74 @@
+#=============================================================================
+# TERRAFORM FILES
+#=============================================================================
+
+# Terraform state files (sensitive data)
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Terraform backup files
+*.tfbackup
+*.tfvars
+
+# Keep example tfvars files
+!terraform.tfvars.example
+!**/*.tfvars.example
+
+#=============================================================================
+# LAMBDA PAYLOAD FILES
+#=============================================================================
+
+# Lambda deployment packages (generated during terraform apply)
+*_lambda_payload.zip
+*_lambda.zip
+
+#=============================================================================
+# LOG FILES
+#=============================================================================
+
+*.log
+
+#=============================================================================
+# OPERATING SYSTEM FILES
+#=============================================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+#=============================================================================
+# TEMPORARY EXCLUSION - Incident Response Playbooks
+#=============================================================================
+
+# Exclude Compromised Server playbook from this push
+# (Remove this section after initial commit if you want to include it later)
+6. Operations-Response/4. Incident Response/Playbook/Compromised Server/
+
+#=============================================================================
+# AWS CREDENTIALS
+#=============================================================================
+
+*.pem
+*.key
+.aws/
+
+#=============================================================================
+# TERRAFORM PLUGIN CACHE
+#=============================================================================
+
+.terraform/providers/

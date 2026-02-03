@@ -1,0 +1,28 @@
+#=============================================================================
+# EXAMPLE TERRAFORM VARIABLES
+# Copy this file to terraform.tfvars and fill in your values
+#=============================================================================
+
+# Environment name
+environment = "prod"
+
+# AWS region
+aws_region = "us-east-1"
+
+# Email address for malware threat alerts (required - you must confirm subscription)
+alert_email = "security-team@example.com"
+
+# VPC CIDR block for Lambda
+vpc_cidr = "10.0.0.0/16"
+
+# Number of availability zones
+availability_zone_count = 2
+
+# IAM ARNs for security admins who can access quarantine bucket
+# Example: ["arn:aws:iam::123456789012:user/security-admin", "arn:aws:iam::123456789012:role/SecurityTeam"]
+security_admin_iam_arns = [
+  "arn:aws:iam::123456789012:user/security-admin"
+]
+
+# Optional: IAM user name to query access keys (for testing/documentation)
+iam_user_name = ""
