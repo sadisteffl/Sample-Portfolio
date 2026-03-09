@@ -8,41 +8,41 @@ My approach uses automation to embed security directly into development workflow
 
 This guidebook follows a **shift-left security philosophy** that prioritizes prevention over detection. The six phases progress from most proactive (left) to most reactive (right), creating a comprehensive security program where each phase builds upon previous ones.
 
-### 🛡️ Phase 1: Foundation & Prevention
+### Phase 1: Foundation & Prevention
 **Building security culture and standards before code is written**
 - Security training and culture programs
 - Organizational security policies and frameworks
 - Developer documentation and standards
 
-### 🏗️ Phase 2: Design & Development
+### Phase 2: Design & Development
 **Integrating security into architecture and development processes**
 - Security tools and coverage strategy
 - Development integration and IDE setup
 - Security processes and checklists
 - Secure coding standards and guidelines
 
-### 🧪 Phase 3: Testing & Validation
+### Phase 3: Testing & Validation
 **Comprehensive security testing throughout development lifecycle**
 - Security testing workflows and validation
 - Vulnerability management processes
 - Automated and manual testing procedures
 - Continuous security verification
 
-### ⚙️ Phase 4: Deployment & Operations
+### Phase 4: Deployment & Operations
 **Securing deployment pipeline and production environments**
 - Infrastructure hardening and configuration
 - Container and Kubernetes security
 - Runtime protection and monitoring
 - Continuous security validation
 
-### ⚖️ Phase 5: Governance & Compliance
+### Phase 5: Governance & Compliance
 **Security governance framework and compliance management**
 - Regulatory compliance and risk management
 - Security policies and standards
 - Audit and assurance processes
 - Continuous compliance monitoring
 
-### 🚨 Phase 6: Operations & Response
+### Phase 6: Operations & Response
 **Security operations and incident response capabilities**
 - Threat intelligence and monitoring
 - Incident response and recovery
